@@ -1,2 +1,6 @@
-export const ROOT = "/";
-export const USERNAME = "/:username"
+const ROUTES = {
+    ROOT: "/",
+    USERNAME: "/:username"
+}
+
+export { ROUTES }

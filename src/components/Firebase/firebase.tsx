@@ -1,5 +1,5 @@
 import app from 'firebase/app'
-import 'firebase/auth'
+import auth from 'firebase/auth'
 import 'firebase/firestore'
 import 'firebase/functions'
 
@@ -11,12 +11,11 @@ const config = {
     messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
 }
 
-
 class Firebase {
-    auth: any
-    db: any
-    functions: any
-    firestore: any
+    auth: firebase.auth.Auth
+    db: firebase.firestore.Firestore
+    functions: firebase.functions.Functions
+    provider: firebase.auth.AuthProvider
 
     constructor() {
         if (!app.apps.length) {
@@ -25,11 +24,17 @@ class Firebase {
         this.auth = app.auth()
         this.db = app.firestore()
         this.functions = app.functions()
-        this.firestore = app.firestore
+        this.provider = new app.auth.TwitterAuthProvider()
     }
 
     // *** Auth API ***
 
+    // twitter signin handler
+    doTwitterSignIn = async () => {
+        this.auth.signInWithRedirect(this.provider)
+    }
+
+    // email and password signin handlers
     doCreateUserWithEmailAndPassword = (email: string, password: string) =>
         this.auth.createUserWithEmailAndPassword(email, password)
 
@@ -38,10 +43,6 @@ class Firebase {
 
     doSignOut = () => this.auth.signOut()
 
-    doPasswordReset = (email: string) => this.auth.sendPasswordResetEmail(email)
-
-    doPasswordUpdate = (password: string) => this.auth.currentUser.updatePassword(password)
-
 }
 
-export { Firebase }
+export { Firebase}
