@@ -1,22 +1,28 @@
-import React from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useFirebase, Firebase } from '../Firebase'
 import { Button } from 'react-bootstrap'
 import { useSession } from '../Session'
-import { useHistory } from 'react-router-dom'
-import { ROUTES } from '../../constants'
-import { useEffect } from 'react';
-
 
 const HomePage: React.FC = () => {
     const firebase = useFirebase()
     const session = useSession()
-    const history = useHistory()
+
+    // Sample write to Firestore
+    const accessFirestore = useCallback(async () => {
+        if (session.auth?.uid) {
+            try {
+                await firebase.db.collection('profiles').doc(session.auth.uid).set({
+                    key: 'value'
+                })
+            } catch (error) {
+                console.log('Error writing Firestore', error)
+            }
+        }
+    }, [session.auth, firebase])
 
     useEffect(() => {
-        if (session.auth) {
-            firebase.firestore().collection('prof').doc(session.auth.uid)
-        }
-    }, [firebase, session])
+        accessFirestore()
+    }, [accessFirestore])
     console.log()
     if (session.auth) {
         return (

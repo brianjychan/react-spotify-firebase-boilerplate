@@ -36,8 +36,8 @@ const MainApp: React.FC = () => {
 const AppWithAuth: React.FC = () => {
     const firebase = useFirebase()
     const [authObject, setAuthObject] = useState(() => {
-        const auth = firebase.auth.currentUser
-        if (!auth) {
+        const currentUser = firebase.auth.currentUser
+        if (!currentUser) {
             return {
                 initializing: true,
                 auth: null,
@@ -45,9 +45,10 @@ const AppWithAuth: React.FC = () => {
         } else {
             return {
                 initializing: false,
-                auth,
+                auth: currentUser,
             }
         }
+
     })
 
     useEffect(() => {

@@ -1,5 +1,5 @@
 import app from 'firebase/app'
-import auth from 'firebase/auth'
+import 'firebase/auth'
 import 'firebase/firestore'
 import 'firebase/functions'
 
@@ -22,6 +22,7 @@ class Firebase {
             app.initializeApp(config)
         }
         this.auth = app.auth()
+        // For ease of access. Note that db normally refers to Firebase Realtime Database.
         this.db = app.firestore()
         this.functions = app.functions()
         this.provider = new app.auth.TwitterAuthProvider()
