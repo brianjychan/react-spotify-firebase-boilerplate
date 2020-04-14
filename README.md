@@ -1,4 +1,6 @@
 # React / Firebase / Typescript Boilerplate
+An minimal way to get started and build a simple full-stack web app using create-react-app and Firebase.
+
 Boilerplate project setup using:
 
 - React frontend (through create-react-app): Typescript, functional components, hooks
@@ -29,7 +31,7 @@ Backend
     - Note that Step 3 is partially taken care of with the 'Using module bundlers' approach. See `./src/components/Firebase`.
     - To initialize Firebase, Create a `.env` file and put your firebase config details there, as labelled in `src/components/Firebase/firebase.ts` (example being `REACT_APP_API_KEY={your API key here}`). `.env` is excluded in `.gitignore`
     - After changing environment variables, you need to restart your development server
-- Make sure to run `firebase init` to create a `.firebaserc` file, which points your Firebase CLI (deploying functions, firestore/storage rules, etc.) to the right project. Note this might rewrite the `./functions` folder though. Learn more here: [Firebase CLI reference](https://firebase.google.com/docs/cli)
+- After installing the firebase CLI, make sure to run `firebase init` to create a `.firebaserc` file, which points your Firebase CLI (deploying functions, firestore/storage rules, etc.) to the right project. Note this might rewrite the `./functions` folder though. Learn more here: [Firebase CLI reference](https://firebase.google.com/docs/cli)
 - Twitter login
     - Get started with Twitter Developer: [Getting started](https://developer.twitter.com/en/docs/basics/getting-started)
     - Make sure to configure your Firebase project to allow auth through Twitter. [Authenticate Using Twitter](https://firebase.google.com/docs/auth/web/twitter-login)
