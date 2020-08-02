@@ -76,7 +76,7 @@ class Firebase {
             // Check if Timestamp (accessed from client SDK)
             return getTextFromTimestamp(timeObject)
         } else if (Object.prototype.toString.call(timeObject) === '[object Object]') {
-            // Check if it's a Map (accessed from Cloud Functions)
+            // Check if it's a Map (JSON serialized from Cloud Functions)
             const timestamp = this.getTimestampFromMap(timeObject)
             if (timestamp) {
                 return getTextFromTimestamp(timestamp)

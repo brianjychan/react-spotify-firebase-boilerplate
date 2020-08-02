@@ -1,1 +1,1 @@
-export { db, messaging } from './firebase'
+export { auth, db, messaging } from './firebase'

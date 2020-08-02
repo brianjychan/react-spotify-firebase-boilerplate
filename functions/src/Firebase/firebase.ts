@@ -3,7 +3,8 @@ import * as admin from 'firebase-admin';
 admin.initializeApp({
     credential: admin.credential.applicationDefault()
 });
+const auth = admin.auth()
 const db = admin.firestore();
 const messaging = admin.messaging()
 
-export { db, messaging }
+export { auth, db, messaging }

@@ -1,5 +1,5 @@
 {
-  "name": "react-firebase-ts-boilerplate",
+  "name": "react-spotify-firebase-boilerplate",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -8,18 +8,17 @@
     "@testing-library/user-event": "^7.1.2",
     "@types/javascript-time-ago": "^2.0.1",
     "@types/jest": "^24.0.0",
-    "@types/node": "^12.0.0",
-    "@types/react": "^16.9.0",
-    "@types/react-dom": "^16.9.0",
-    "bootstrap": "^4.4.1",
+    "@types/node": "^12.12.53",
+    "@types/react": "^16.9.44",
+    "@types/react-dom": "^16.9.8",
     "firebase": "^7.17.1",
     "javascript-time-ago": "^2.0.13",
     "react": "^16.13.1",
-    "react-bootstrap": "^1.0.0",
+    "react-bootstrap": "^1.3.0",
     "react-dom": "^16.13.1",
-    "react-router-dom": "^5.1.2",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
-    "typescript": "~3.7.2"
+    "typescript": "^3.9.7"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -43,11 +42,11 @@
     ]
   },
   "devDependencies": {
-    "@types/react-router-dom": "^5.1.3",
-    "eslint-config-airbnb": "^18.1.0",
-    "eslint-config-prettier": "^6.10.1",
-    "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-prettier": "^3.1.2",
-    "prettier": "^2.0.1"
+    "@types/react-router-dom": "^5.1.5",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-prettier": "^3.1.4",
+    "prettier": "^2.0.5"
   }
 }

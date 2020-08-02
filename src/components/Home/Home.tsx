@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react'
-import { useFirebase, Firebase } from '../Firebase'
+import { useFirebase } from '../Firebase'
 import { Button } from 'react-bootstrap'
 import { useSession } from '../Session'
 

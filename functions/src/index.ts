@@ -1,1 +1,3 @@
-export { createNewProfile } from './Profile'
+import { login, spotifyAuth } from "./Spotify";
+
+export { login, spotifyAuth }
