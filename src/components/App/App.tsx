@@ -15,8 +15,9 @@ import { useSession, SessionContext } from '../Session/'
 import Button from 'react-bootstrap/Button';
 import styles from './App.module.css'
 import Spinner from 'react-bootstrap/Spinner'
-import { SessionObject } from '../Session/useSession';
-import { UserProfile } from '../Types/UserProfile';
+import { SessionObject, doRefreshToken } from '../Session/useSession';
+import { ApiProfile } from '../Types/UserProfile';
+
 
 
 function useQuery() {
@@ -33,7 +34,6 @@ const LoginWithCode: React.FC = () => {
         const doLogin = async () => {
             const code = query.get('code')
             const devMode = process.env.NODE_ENV === 'development'
-
             if (!code) {
                 return
             }
@@ -83,7 +83,7 @@ const generateRandomString = function (length: number) {
 }
 
 const LoginScreen: React.FC = () => {
-    const SPOTIFY_SCOPES = 'user-read-private user-read-email user-read-playback-state playlist-read-private playlist-read-collaborative'
+    const SPOTIFY_SCOPES = 'user-read-email'
     const CLIENT_ID = process.env.REACT_APP_SPOTIFY_CLIENT_ID
     const REDIRECT_URL = process.env.NODE_ENV === 'development' ? DEV_SPOTIFY_REDIRECT_URL : SPOTIFY_REDIRECT_URL
 
@@ -130,10 +130,12 @@ const MainApp: React.FC = () => {
     return (
         <Router>
             <Switch>
+                <Route path={ROUTES.LOGIN_WITH_CODE}>
+                    <Redirect to={ROUTES.ROOT} />
+                </Route>
                 <Route path={ROUTES.ROOT}>
                     <HomePage />
                 </Route>
-
             </Switch>
         </Router>
     )
@@ -145,8 +147,9 @@ const AppWithAuth: React.FC = () => {
     const [session, setSession] = useState<SessionObject>({
         initializing: true,
         auth: null,
-        prof: null,
+        prof: {} as ApiProfile,
     } as SessionObject)
+
 
     useEffect(() => {
         // unsubscribe to the profile listener when unmounting
@@ -155,16 +158,17 @@ const AppWithAuth: React.FC = () => {
         function onChange(newUser: firebase.User | null) {
             if (newUser === null) {
                 // Not authenticated
-                setSession({ initializing: false, auth: null, prof: null })
+                setSession({ initializing: false, auth: null, prof: {} as ApiProfile, refreshMode: 0 })
                 unsubscribeProfileDoc()
             } else {
                 // New authentication occurred
-                unsubscribeProfileDoc = firebase.db.collection('users').doc(newUser.uid).onSnapshot(async function (profileDoc) {
-                    const profile = profileDoc.data() as UserProfile
-                    setSession({ initializing: false, auth: newUser, prof: profile })
+                unsubscribeProfileDoc = firebase.db.collection('users').doc(newUser.uid).collection('sensitive').doc('api').onSnapshot(async function (profileDoc) {
+                    const profile = profileDoc.data() as ApiProfile
+                    setSession({ initializing: false, auth: newUser, prof: profile, refreshMode: 0 })
+                    doRefreshToken(firebase, profile)
                 }, (error) => {
                     console.error('Couldn\'t access profile')
-                    setSession({ initializing: false, auth: newUser, prof: null })
+                    setSession({ initializing: false, auth: newUser, prof: {} as ApiProfile, refreshMode: 0 })
                     console.log(error)
                 })
             }

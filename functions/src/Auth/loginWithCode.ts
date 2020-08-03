@@ -5,7 +5,6 @@ import * as querystring from 'querystring'
 import { CLIENT_ID, CLIENT_SECRET, SPOTIFY_REDIRECT_URL, DEV_SPOTIFY_REDIRECT_URL } from './config';
 import { db, auth } from '../Firebase';
 
-
 const loginWithCode = functions.https.onCall(async (data, context) => {
     // Check for error or code
     const { code, devMode } = data
@@ -18,8 +17,6 @@ const loginWithCode = functions.https.onCall(async (data, context) => {
             code: code,
             redirect_uri: redirectUri,
             grant_type: 'authorization_code',
-            client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET,
         }
         const tokenExchangePayload: AxiosRequestConfig = {
             method: 'POST',
@@ -32,7 +29,7 @@ const loginWithCode = functions.https.onCall(async (data, context) => {
         }
 
         const tokenExchangeResult = await axios.request(tokenExchangePayload)
-        const { access_token, refresh_token } = tokenExchangeResult.data
+        const { access_token, refresh_token, expires_in } = tokenExchangeResult.data
 
         // Retrieve Spotify profile
         const retrieveIdPayload: AxiosRequestConfig = {
@@ -70,9 +67,12 @@ const loginWithCode = functions.https.onCall(async (data, context) => {
             // Save access tokens
             const userApiData = {
                 uid,
+                name: display_name,
+                urls: external_urls,
                 ...retrieveIdResult,
                 accessToken: access_token,
-                refreshToken: refresh_token
+                refreshToken: refresh_token,
+                tokenExpiryMs: Date.now() + (expires_in * 1000) - 10000
             }
             await db.collection('users').doc(uid).collection('sensitive').doc('api').set(userApiData)
         }
