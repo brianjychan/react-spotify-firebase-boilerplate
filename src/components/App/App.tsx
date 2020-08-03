@@ -3,21 +3,90 @@ import {
     BrowserRouter as Router,
     Switch,
     Route,
+    useLocation,
 } from "react-router-dom"
+import * as querystring from 'query-string'
 
-import { ROUTES } from '../../constants'
+import { ROUTES, SPOTIFY_REDIRECT_URL, DEV_SPOTIFY_REDIRECT_URL } from '../../constants'
 import { HomePage } from '../Home'
 import { useFirebase } from '../Firebase'
 import { useSession, SessionContext } from '../Session/'
 import Button from 'react-bootstrap/Button';
 import styles from './App.module.css'
-import { LOGIN_CLOUD_FUNC } from '../../constants/auth';
+import Spinner from 'react-bootstrap/Spinner'
+import { SessionObject } from '../Session/useSession';
+import { UserProfile } from '../Types/UserProfile';
 
 
-const LoginScreen: React.FC = () => {
+function useQuery() {
+    return new URLSearchParams(useLocation().search);
+}
+
+const LoginWithCode: React.FC = () => {
+    const query = useQuery()
+    const firebase = useFirebase()
+
+    useEffect(() => {
+        const doLogin = async () => {
+            const code = query.get('code')
+            const devMode = process.env.NODE_ENV === 'development'
+
+            const loginPayload = {
+                code,
+                devMode
+            }
+            const loginWithCode = firebase.functions.httpsCallable('loginWithCode')
+            try {
+                const result = await loginWithCode(loginPayload)
+                const { success, customToken } = result.data
+                if (success && customToken) {
+                    firebase.auth.signInWithCustomToken(customToken)
+                }
+            }
+            catch (error) {
+                console.log(error)
+            }
+        }
+
+        doLogin()
+    }, [query, firebase])
+
     return (
         <div className={styles.window}>
-            <Button href={LOGIN_CLOUD_FUNC}>Login with Spotify</Button>
+            <Spinner animation="border" role="status" variant="success" />
+            <p>Logging you in...</p>
+        </div>
+    )
+}
+
+const generateRandomString = function (length: number) {
+    let text = ''
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+
+    for (let i = 0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length))
+    }
+    return text
+}
+
+const LoginScreen: React.FC = () => {
+    const SPOTIFY_SCOPES = 'user-read-private user-read-email user-read-playback-state playlist-read-private playlist-read-collaborative'
+    const CLIENT_ID = process.env.REACT_APP_SPOTIFY_CLIENT_ID
+    const REDIRECT_URL = process.env.NODE_ENV === 'development' ? DEV_SPOTIFY_REDIRECT_URL : SPOTIFY_REDIRECT_URL
+
+    const queryStringPayload = {
+        response_type: 'code',
+        client_id: CLIENT_ID,
+        scope: SPOTIFY_SCOPES,
+        redirect_uri: REDIRECT_URL,
+        state: generateRandomString(16)
+    }
+    const spotifyLoginUrl = 'https://accounts.spotify.com/authorize?' + querystring.stringify(queryStringPayload)
+
+
+    return (
+        <div className={styles.window}>
+            <Button href={spotifyLoginUrl}>Login with Spotify</Button>
         </div>
     )
 }
@@ -26,19 +95,32 @@ const MainApp: React.FC = () => {
     const session = useSession()
 
     if (session.initializing) {
-        return (<div/>)
+        return (<div />)
     }
 
     if (!session.auth?.uid) {
-        return <LoginScreen />
+        return (
+            <Router>
+                <Switch>
+                    <Route path={ROUTES.LOGIN_WITH_CODE}>
+                        <LoginWithCode />
+                    </Route>
+                    <Route path={ROUTES.ROOT}>
+                        <LoginScreen />
+                    </Route>
+                </Switch>
+            </Router>
+        )
     }
 
+    // Authenticated
     return (
         <Router>
             <Switch>
                 <Route path={ROUTES.ROOT}>
                     <HomePage />
                 </Route>
+
             </Switch>
         </Router>
     )
@@ -47,57 +129,45 @@ const MainApp: React.FC = () => {
 // Provides App-Wide Context to access auth object
 const AppWithAuth: React.FC = () => {
     const firebase = useFirebase()
-    const [authObject, setAuthObject] = useState(() => {
-        const currentUser = firebase.auth.currentUser
-        if (!currentUser) {
-            return {
-                initializing: true,
-                auth: null,
-            }
-        } else {
-            return {
-                initializing: false,
-                auth: currentUser,
-            }
-        }
-
-    })
+    const [session, setSession] = useState<SessionObject>({
+        initializing: true,
+        auth: null,
+        prof: null,
+    } as SessionObject)
 
     useEffect(() => {
-        function onChange(newUser: any) {
-            console.log('New user detected in auth onChange: ', newUser)
+        // unsubscribe to the profile listener when unmounting
+        let unsubscribeProfileDoc: () => void
+
+        function onChange(newUser: firebase.User | null) {
             if (newUser === null) {
                 // Not authenticated
-                console.log('Not authenticated')
-                setAuthObject({ initializing: false, auth: null })
+                setSession({ initializing: false, auth: null, prof: null })
             } else {
                 // New authentication occurred
-                setAuthObject(prevState => {
-                    if (prevState.auth === null) {
-                        // Went from unauthenticated to authenticated
-                        console.log('Authenticated')
-                        return { initializing: false, auth: newUser }
-                    } else {
-                        // Bug: Went from authenticated to another authentication
-                        console.log('Bug: reauthenticated')
-                        return prevState
-                    }
+                unsubscribeProfileDoc = firebase.db.collection('users').doc(newUser.uid).onSnapshot(async function (profileDoc) {
+                    const profile = profileDoc.data() as UserProfile
+                    setSession({ initializing: false, auth: newUser, prof: profile })
+                }, (error) => {
+                    console.error('Couldn\'t access profile')
+                    setSession({ initializing: false, auth: newUser, prof: null })
+                    console.log(error)
                 })
             }
         }
 
         // listen for auth state changes
         const unsubscribe = firebase.auth.onAuthStateChanged(onChange)
-        // unsubscribe to the listener when unmounting
 
         return () => {
+            unsubscribeProfileDoc()
             unsubscribe()
-            // We loaded a prof and were listening to it
         }
-    }, [firebase.auth])
+    }, [firebase])
+
 
     return (
-        <SessionContext.Provider value={authObject}>
+        <SessionContext.Provider value={session}>
             <MainApp />
         </SessionContext.Provider>
     )

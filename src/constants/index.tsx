@@ -1,2 +1,2 @@
 export { ROUTES } from './routes'
-export { LOGIN_CLOUD_FUNC } from './auth'
+export { SPOTIFY_REDIRECT_URL, DEV_SPOTIFY_REDIRECT_URL } from './auth'

@@ -1,3 +1,3 @@
-import { login, spotifyAuth } from "./Spotify";
+import { loginWithCode } from "./Auth";
 
-export { login, spotifyAuth }
+export { loginWithCode }

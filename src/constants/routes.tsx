@@ -1,6 +1,7 @@
 const ROUTES = {
     ROOT: "/",
-    USERNAME: "/:username"
+    LOGIN_WITH_CODE: "/loginWithCode",
+    USERNAME: "/:username",
 }
 
 export { ROUTES }

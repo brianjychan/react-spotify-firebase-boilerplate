@@ -1,14 +1,18 @@
 import { createContext, useContext } from 'react'
 import firebase from 'firebase'
+import { UserProfile } from '../Types/UserProfile';
 
-interface SessionObject {
+
+export interface SessionObject {
     initializing: boolean,
     auth: firebase.User | null,
+    prof: UserProfile| null,
 }
 
 const SessionContext = createContext<SessionObject>({
-    auth: {} as firebase.User,
-    initializing: true
+    auth: null,
+    initializing: true,
+    prof: null,
 })
 
 const useSession = () => {

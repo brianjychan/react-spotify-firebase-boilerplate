@@ -46,19 +46,6 @@ class Firebase {
     }
 
     // *** Auth API ***
-
-    // twitter signin handler
-    doTwitterSignIn = async () => {
-        this.auth.signInWithRedirect(this.provider)
-    }
-
-    // email and password signin handlers
-    doCreateUserWithEmailAndPassword = (email: string, password: string) =>
-        this.auth.createUserWithEmailAndPassword(email, password)
-
-    doSignInWithEmailAndPassword = (email: string, password: string) =>
-        this.auth.signInWithEmailAndPassword(email, password)
-
     doSignOut = () => this.auth.signOut()
 
     getTimeText = (timeObject: any) => {

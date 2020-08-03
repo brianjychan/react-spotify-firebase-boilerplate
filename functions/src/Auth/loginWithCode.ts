@@ -2,23 +2,21 @@ import * as functions from 'firebase-functions'
 import axios, { AxiosRequestConfig } from 'axios'
 import * as querystring from 'querystring'
 
-import { AUTH_CALLBACK_REDIRECT, SITE_URL, CLIENT_ID, CLIENT_SECRET } from './config';
+import { CLIENT_ID, CLIENT_SECRET, AUTH_CALLBACK_REDIRECT, DEV_AUTH_CALLBACK_REDIRECT } from './config';
 import { db, auth } from '../Firebase';
 
-const spotifyAuth = functions.https.onRequest(async (req, res) => {
+
+const loginWithCode = functions.https.onCall(async (data, context) => {
     // Check for error or code
-    if (req.query.error) {
-        console.log('Login Error')
-        res.redirect('https://spotify.com/')
-    }
-    const code = req.query.code || null
-    res.clearCookie('__session')
+    const { code, devMode } = data
+
+    const redirectUri = devMode ? DEV_AUTH_CALLBACK_REDIRECT : AUTH_CALLBACK_REDIRECT
 
     try {
         // Retrieve access and refresh tokens
         const urlEncodedData = {
             code: code,
-            redirect_uri: AUTH_CALLBACK_REDIRECT,
+            redirect_uri: redirectUri,
             grant_type: 'authorization_code',
             client_id: CLIENT_ID,
             client_secret: CLIENT_SECRET,
@@ -30,13 +28,11 @@ const spotifyAuth = functions.https.onRequest(async (req, res) => {
             headers: {
                 'content-type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Basic ' + (new Buffer(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'))
-            },
+            }
         }
 
         const tokenExchangeResult = await axios.request(tokenExchangePayload)
         const { access_token, refresh_token } = tokenExchangeResult.data
-        console.log('token exchange result: ')
-        console.log(tokenExchangeResult)
 
         // Retrieve Spotify profile
         const retrieveIdPayload: AxiosRequestConfig = {
@@ -44,20 +40,14 @@ const spotifyAuth = functions.https.onRequest(async (req, res) => {
             url: 'https://api.spotify.com/v1/me',
             headers: { 'Authorization': 'Bearer ' + access_token },
         }
-
         const retrieveIdResult = (await axios.request(retrieveIdPayload)).data
         const { display_name, email, external_urls, id, images } = retrieveIdResult
 
+        // Locate existing user profile in Firestore
         const existingUserQuery = await db.collection('users').where('id', '==', id).get()
-        let redirectSiteUrl = SITE_URL
+        let uid = ''
         if (existingUserQuery.docs.length === 1) {
-            // User already exists
-
-            // Add `devMode = true` on your user document to reroute to localhost in dev
-            const isInDevMode = existingUserQuery.docs[0].data().devMode
-            if (isInDevMode) {
-                redirectSiteUrl = 'http://localhost:3000'
-            }
+            uid = existingUserQuery.docs[0].data().uid
         } else if (existingUserQuery.docs.length === 0) {
             // User is authenticating for the first time
             // Create new user in Firebase
@@ -65,7 +55,7 @@ const spotifyAuth = functions.https.onRequest(async (req, res) => {
                 email,
                 displayName: display_name,
             })
-            const { uid } = newUser
+            uid = newUser.uid
 
             // Create new user profile
             const newProfileData = {
@@ -78,21 +68,18 @@ const spotifyAuth = functions.https.onRequest(async (req, res) => {
             await db.collection('users').doc(uid).set(newProfileData)
 
             // Save access tokens
-            const newTokenData = {
+            const userApiData = {
+                uid,
                 ...retrieveIdResult,
                 accessToken: access_token,
                 refreshToken: refresh_token
             }
-            await db.collection('users').doc(uid).collection('sensitive').doc('api').set(newTokenData)
+            await db.collection('users').doc(uid).collection('sensitive').doc('api').set(userApiData)
         }
 
-        // Pass tokens to browser
-        res.redirect(redirectSiteUrl + '?' +
-            querystring.stringify({
-                access_token: access_token,
-                refresh_token: refresh_token
-            })
-        )
+        // Generate a login token
+        const customToken = await auth.createCustomToken(uid)
+        return { success: true, customToken }
 
     } catch (error) {
         console.error('Login error!')
@@ -113,8 +100,8 @@ const spotifyAuth = functions.https.onRequest(async (req, res) => {
             console.log('Error', error.message);
         }
         console.log(error.config);
-        res.redirect(SITE_URL)
+        return { success: false }
     }
 })
 
-export { spotifyAuth }
+export { loginWithCode }
