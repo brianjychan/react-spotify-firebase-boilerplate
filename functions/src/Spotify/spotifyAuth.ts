@@ -12,8 +12,6 @@ const spotifyAuth = functions.https.onRequest(async (req, res) => {
         res.redirect('https://spotify.com/')
     }
     const code = req.query.code || null
-
-    // TODO: what does this do
     res.clearCookie('__session')
 
     try {
@@ -50,7 +48,6 @@ const spotifyAuth = functions.https.onRequest(async (req, res) => {
         const retrieveIdResult = (await axios.request(retrieveIdPayload)).data
         const { display_name, email, external_urls, id, images } = retrieveIdResult
 
-        // TODO: how to check if user already has created their profile?
         const existingUserQuery = await db.collection('users').where('id', '==', id).get()
         let redirectSiteUrl = SITE_URL
         if (existingUserQuery.docs.length === 1) {

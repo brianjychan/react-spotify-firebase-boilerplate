@@ -11,9 +11,8 @@ import { useFirebase } from '../Firebase'
 import { useSession, SessionContext } from '../Session/'
 import Button from 'react-bootstrap/Button';
 import styles from './App.module.css'
+import { LOGIN_CLOUD_FUNC } from '../../constants/auth';
 
-// The URL of your `login` Cloud Function (from `functions/src/Spotify/login`)
-const LOGIN_CLOUD_FUNC = ''
 
 const LoginScreen: React.FC = () => {
     return (
