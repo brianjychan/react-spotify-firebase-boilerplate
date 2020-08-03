@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions'
 import axios, { AxiosRequestConfig } from 'axios'
 import * as querystring from 'querystring'
 
-import { CLIENT_ID, CLIENT_SECRET, AUTH_CALLBACK_REDIRECT, DEV_AUTH_CALLBACK_REDIRECT } from './config';
+import { CLIENT_ID, CLIENT_SECRET, SPOTIFY_REDIRECT_URL, DEV_SPOTIFY_REDIRECT_URL } from './config';
 import { db, auth } from '../Firebase';
 
 
@@ -10,7 +10,7 @@ const loginWithCode = functions.https.onCall(async (data, context) => {
     // Check for error or code
     const { code, devMode } = data
 
-    const redirectUri = devMode ? DEV_AUTH_CALLBACK_REDIRECT : AUTH_CALLBACK_REDIRECT
+    const redirectUri = devMode ? DEV_SPOTIFY_REDIRECT_URL : SPOTIFY_REDIRECT_URL
 
     try {
         // Retrieve access and refresh tokens

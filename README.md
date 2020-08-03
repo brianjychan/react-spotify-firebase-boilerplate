@@ -25,9 +25,9 @@ Boilerplate project setup using:
 - After installing the firebase CLI, make sure to run `firebase init` to create a `.firebaserc` file, which points your Firebase CLI (deploying functions, firestore/storage rules, etc.) to the right project. Note this might rewrite the `./functions` folder though. Learn more here: [Firebase CLI reference](https://firebase.google.com/docs/cli)
 
 ### Spotify
-- Retrieve your Spotify client ID and secret. Use the firebase CLI to upload this to your config
-- Modify `functions/src/Spotify/config.ts` with the appropriate values
-- set the value of `LOGIN_CLOUD_FUNC` in `src/components/App/App.tsx` to the appropriate URL to your Cloud Function
+- Retrieve your app's Spotify client ID and secret from the Spotify Developer Dashboard. Use the firebase CLI to upload these to your config as expected in `functions/src/Auth/config.ts`
+- Modify the other values in `functions/src/Auth/config.ts` as appropriate
+- Miror those values in `src/constants/auth.tsx`. Spotify expects these values to be identical between API calls when exchanging the code for the access and refresh tokens.
 
 ### Run
 
