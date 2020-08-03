@@ -4,6 +4,7 @@ import {
     Switch,
     Route,
     useLocation,
+    Redirect,
 } from "react-router-dom"
 import * as querystring from 'query-string'
 
@@ -26,10 +27,16 @@ const LoginWithCode: React.FC = () => {
     const query = useQuery()
     const firebase = useFirebase()
 
+    const [loginFailed, setLoginFailed] = useState(false)
+
     useEffect(() => {
         const doLogin = async () => {
             const code = query.get('code')
             const devMode = process.env.NODE_ENV === 'development'
+
+            if (!code) {
+                return
+            }
 
             const loginPayload = {
                 code,
@@ -41,16 +48,22 @@ const LoginWithCode: React.FC = () => {
                 const { success, customToken } = result.data
                 if (success && customToken) {
                     firebase.auth.signInWithCustomToken(customToken)
+                } else {
+                    setLoginFailed(true)
                 }
             }
             catch (error) {
                 console.log(error)
             }
         }
-
         doLogin()
     }, [query, firebase])
 
+    if (loginFailed) {
+        return (
+            <Redirect to={ROUTES.ROOT} />
+        )
+    }
     return (
         <div className={styles.window}>
             <Spinner animation="border" role="status" variant="success" />
@@ -86,7 +99,7 @@ const LoginScreen: React.FC = () => {
 
     return (
         <div className={styles.window}>
-            <Button href={spotifyLoginUrl}>Login with Spotify</Button>
+            <Button href={spotifyLoginUrl} variant="success">Login with Spotify</Button>
         </div>
     )
 }
@@ -137,12 +150,13 @@ const AppWithAuth: React.FC = () => {
 
     useEffect(() => {
         // unsubscribe to the profile listener when unmounting
-        let unsubscribeProfileDoc: () => void
+        let unsubscribeProfileDoc = () => { }
 
         function onChange(newUser: firebase.User | null) {
             if (newUser === null) {
                 // Not authenticated
                 setSession({ initializing: false, auth: null, prof: null })
+                unsubscribeProfileDoc()
             } else {
                 // New authentication occurred
                 unsubscribeProfileDoc = firebase.db.collection('users').doc(newUser.uid).onSnapshot(async function (profileDoc) {
