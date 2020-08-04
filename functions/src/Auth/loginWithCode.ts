@@ -53,29 +53,29 @@ const loginWithCode = functions.https.onCall(async (data, context) => {
                 displayName: display_name,
             })
             uid = newUser.uid
-
-            // Create new user profile
-            const newProfileData = {
-                uid,
-                id,
-                name: display_name,
-                urls: external_urls,
-                images,
-            }
-            await db.collection('users').doc(uid).set(newProfileData)
-
-            // Save access tokens
-            const userApiData = {
-                uid,
-                name: display_name,
-                urls: external_urls,
-                ...retrieveIdResult,
-                accessToken: access_token,
-                refreshToken: refresh_token,
-                tokenExpiryMs: Date.now() + (expires_in * 1000) - 10000
-            }
-            await db.collection('users').doc(uid).collection('sensitive').doc('api').set(userApiData)
         }
+
+        // Update user profile
+        const newProfileData = {
+            uid,
+            id,
+            name: display_name,
+            urls: external_urls,
+            images,
+        }
+        await db.collection('users').doc(uid).set(newProfileData)
+
+        // Save access tokens
+        const userApiData = {
+            uid,
+            name: display_name,
+            urls: external_urls,
+            ...retrieveIdResult,
+            accessToken: access_token,
+            refreshToken: refresh_token,
+            tokenExpiryMs: Date.now() + (expires_in * 1000) - 10000
+        }
+        await db.collection('users').doc(uid).collection('sensitive').doc('api').set(userApiData)
 
         // Generate a login token
         const customToken = await auth.createCustomToken(uid)

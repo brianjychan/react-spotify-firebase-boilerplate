@@ -1,3 +1,6 @@
+import { firestore } from "firebase-admin"
+
+
 interface ImageArray {
     height: number;
     url: string;
@@ -8,13 +11,27 @@ interface SpotifyUrls {
     spotify: string
 }
 
-export interface ApiProfile {
+export interface UserProfile {
     id: string,
     uid: string,
     images: Array<ImageArray>,
     urls: SpotifyUrls,
     name: string,
+}
+
+export interface ApiProfile extends UserProfile {
+    href: string,
     accessToken: string,
     tokenExpiryMs: number,
     refreshToken: string,
 }
+
+const transformSpotifyProfile = (spotifyProfile: any) => {
+    return {
+        ...spotifyProfile,
+        urls: spotifyProfile.external_urls,
+        name: spotifyProfile.display_name
+    } as UserProfile
+}
+
+export { transformSpotifyProfile }

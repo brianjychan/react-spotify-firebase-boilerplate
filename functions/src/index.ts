@@ -1,3 +1,3 @@
-import { loginWithCode, doRefreshToken } from "./Auth";
+import { loginWithCode, doRefreshTokenCF } from "./Auth";
 
-export { loginWithCode, doRefreshToken }
+export { loginWithCode, doRefreshTokenCF }

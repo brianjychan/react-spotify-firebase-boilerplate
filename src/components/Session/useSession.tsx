@@ -2,7 +2,6 @@ import { createContext, useContext } from 'react'
 import firebase from 'firebase'
 import { ApiProfile } from '../Types/UserProfile';
 import { Firebase } from '../Firebase';
-import axios, { AxiosRequestConfig } from 'axios'
 
 export interface SessionObject {
     initializing: boolean,
@@ -18,8 +17,7 @@ const doRefreshToken = async (firebase: Firebase, profile: ApiProfile) => {
         return { success: true, accessToken }
     }
     try {
-        // Request Failed. Request new refresh token
-        const refreshTokenFunc = firebase.functions.httpsCallable('doRefreshToken')
+        const refreshTokenFunc = firebase.functions.httpsCallable('doRefreshTokenCF')
         const refreshResult = (await refreshTokenFunc()).data
         return { success: refreshResult.success, accessToken: refreshResult.accessToken }
     } catch (error) {
