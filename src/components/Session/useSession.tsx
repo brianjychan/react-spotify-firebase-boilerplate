@@ -15,33 +15,16 @@ const doRefreshToken = async (firebase: Firebase, profile: ApiProfile) => {
     const { tokenExpiryMs, accessToken } = profile
 
     if (Date.now() < tokenExpiryMs) {
-        return { valid: true }
+        return { success: true, accessToken }
     }
-    const accessCheckPayload: AxiosRequestConfig = {
-        method: 'GET',
-        url: 'https://api.spotify.com/v1/me',
-        headers: {
-            'Authorization': 'Bearer ' + accessToken
-        }
-    }
-    let requestFailed = false
     try {
-        await axios.request(accessCheckPayload)
-        return { valid: true }
+        // Request Failed. Request new refresh token
+        const refreshTokenFunc = firebase.functions.httpsCallable('doRefreshToken')
+        const refreshResult = (await refreshTokenFunc()).data
+        return { success: refreshResult.success, accessToken: refreshResult.accessToken }
     } catch (error) {
         console.log(error)
-        requestFailed = true
-    }
-    if (requestFailed) {
-        try {
-            // Request Failed. Request new refresh token
-            const refreshTokenFunc = firebase.functions.httpsCallable('doRefreshToken')
-            await refreshTokenFunc()
-            return { valid: true }
-
-        } catch (error) {
-            console.log(error)
-        }
+        return { success: false, accessToken: '' }
     }
 }
 

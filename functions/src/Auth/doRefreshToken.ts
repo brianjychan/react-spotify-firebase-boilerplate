@@ -8,7 +8,6 @@ import { ApiProfile } from '../Types/UserProfile';
 
 const INVALID_RESPONSE = { success: false }
 const doRefreshToken = functions.https.onCall(async (data, context) => {
-
     const uid = context.auth?.uid
     if (!uid) {
         return INVALID_RESPONSE
@@ -41,7 +40,7 @@ const doRefreshToken = functions.https.onCall(async (data, context) => {
         }
         await db.collection('users').doc(uid).collection('sensitive').doc('api').update(userApiData)
 
-        return { success: true }
+        return { success: true, accessToken: access_token }
 
     } catch (error) {
         console.error('Login error!')

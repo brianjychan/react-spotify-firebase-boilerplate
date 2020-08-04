@@ -16,12 +16,12 @@ const HomePage: React.FC = () => {
     const doSomething = async () => {
         // If we want to make a Spotify API request from the browser, we should check
         // if the accessToken has not expired yet 
-        await doRefreshToken(firebase, session.prof)
+        const { accessToken, success } = await doRefreshToken(firebase, session.prof)
 
         // Then contact the Spotify API here
-        console.log(text)
+        console.log(text, accessToken, success)
     }
-    
+
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setText(event.target.value)
@@ -43,12 +43,12 @@ const HomePage: React.FC = () => {
                 <Col>
                     <h1>Logged in as {name}</h1>
                 </Col>
-                <Col xs={1}>
+                <Col xs="auto">
                     <Button variant="outline-success" onClick={() => { firebase.doSignOut() }}>Sign Out</Button>
                 </Col>
             </Row>
             <div className={styles.userLinkBox}>
-               <Row>
+                <Row>
                     <Col xs={5}>
                         <input onChange={handleChange} className={styles.userLinkInput} />
                     </Col>
