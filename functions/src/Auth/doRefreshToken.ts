@@ -24,7 +24,7 @@ const doRefreshToken = async (uid: string) => {
         const { accessToken, refreshToken, tokenExpiryMs } = apiData
 
         // If it's still valid, return the current accessToken
-        if (Date.now() < tokenExpiryMs) {
+        if (Date.now() < (tokenExpiryMs - (5 * 60 * 1000))) {
             return { success: true, accessToken }
         }
 

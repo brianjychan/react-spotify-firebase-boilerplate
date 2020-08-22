@@ -13,7 +13,7 @@ export interface SessionObject {
 const doRefreshToken = async (firebase: Firebase, profile: ApiProfile) => {
     const { tokenExpiryMs, accessToken } = profile
 
-    if (Date.now() < tokenExpiryMs) {
+    if (Date.now() < (tokenExpiryMs - (5 * 60 * 1000))) {
         return { success: true, accessToken }
     }
     try {
