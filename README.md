@@ -1,4 +1,4 @@
-# React / Spotify / Firebase Boilerplate
+# React / Spotify Authorization Code Flow / Firebase Boilerplate
 
 A minimal way to get started and build a simple full-stack web app using create-react-app and Firebase.
 
